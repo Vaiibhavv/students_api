@@ -12,6 +12,7 @@ import (
 
 	"githum.com/Vaiibhavv/students-api/students_api/internal/config"
 	"githum.com/Vaiibhavv/students-api/students_api/internal/http/handlers/student"
+	sqlite "githum.com/Vaiibhavv/students-api/students_api/internal/storage/sqllite"
 )
 
 func main() {
@@ -20,11 +21,18 @@ func main() {
 	cfg := config.MustLoad()
 
 	//setup database
+	database, err := sqlite.New(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+	slog.Info("storage intialize", slog.String("version", "1.0.0"), slog.String("env %s", cfg.Env))
+
 	//setup router
 	router := http.NewServeMux()
 
 	//seting up the url for response and request(get, poast , method)
-	router.HandleFunc("POST /api/students", student.New())
+	// here we are implemening the Storage interface signature method in sqlite package ( for database)
+	router.HandleFunc("POST /api/students", student.New(database))
 
 	// setup server , http.server is the struct
 	server := http.Server{
@@ -49,7 +57,8 @@ func main() {
 
 		err := server.ListenAndServe()
 		if err != nil {
-			log.Fatal("failed to start the server")
+			log.Fatal(err)
+			return
 		}
 	}()
 
@@ -59,7 +68,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := server.Shutdown(ctx)
+	err = server.Shutdown(ctx)
 	if err != nil {
 		slog.Error("failed to shutdown server", slog.String("error", err.Error()))
 	}

@@ -3,16 +3,19 @@ package student
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
 	"githum.com/Vaiibhavv/students-api/students_api/internal/response"
+	"githum.com/Vaiibhavv/students-api/students_api/internal/storage"
 	"githum.com/Vaiibhavv/students-api/students_api/internal/types"
 )
 
-func New() http.HandlerFunc {
+// later we are passing the storage for jsonn record to be stored in database
+func New(storage storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("creating a student")
 
@@ -38,8 +41,23 @@ func New() http.HandlerFunc {
 			return
 		}
 
+		// need to call the createstudent method to create a student in database
+
+		lastid, err := storage.CreateStudent(
+			student.Name,
+			student.Email,
+			student.Age,
+		)
+
+		slog.Info("user created", slog.String("userid", fmt.Sprint(lastid)))
+
+		if err != nil {
+			response.WriteJson(w, http.StatusInternalServerError, err)
+			return
+		}
+
 		// print the response after success
-		response.WriteJson(w, http.StatusCreated, map[string]string{"success": "okay"})
+		response.WriteJson(w, http.StatusCreated, map[string]int64{"id": lastid})
 
 		//w.Write([]byte("welcome to student api"))
 	}
