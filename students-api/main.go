@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"githum.com/Vaiibhavv/students-api/students_api/internal/config"
+	"githum.com/Vaiibhavv/students-api/students_api/internal/http/handlers/student"
 )
 
 func main() {
@@ -22,10 +23,8 @@ func main() {
 	//setup router
 	router := http.NewServeMux()
 
-	//seting up the url for response and request(get, post , method)
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("welcome to student api"))
-	})
+	//seting up the url for response and request(get, poast , method)
+	router.HandleFunc("POST /api/students", student.New())
 
 	// setup server , http.server is the struct
 	server := http.Server{
@@ -39,11 +38,13 @@ func main() {
 
 	// to handling the graceful shutdown(means interrupt while providing a api response)
 
+	// by using done channel we can handled the interruption
 	done := make(chan os.Signal, 1)
 
 	// os signal notify to ther server server interrupt or not
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
+	// this will run concurrently
 	go func() {
 
 		err := server.ListenAndServe()
