@@ -33,6 +33,7 @@ func main() {
 	//seting up the url for response and request(get, poast , method)
 	// here we are implemening the Storage interface signature method in sqlite package ( for database)
 	router.HandleFunc("POST /api/students", student.New(database))
+	router.HandleFunc("GET /api/students/{id}", student.GetById(database))
 
 	// setup server , http.server is the struct
 	server := http.Server{
