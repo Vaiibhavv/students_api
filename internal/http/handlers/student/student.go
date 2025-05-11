@@ -88,3 +88,42 @@ func GetById(storage storage.Storage) http.HandlerFunc {
 		response.WriteJson(w, http.StatusOK, student)
 	}
 }
+func UpdateStudentById(storage storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		id := r.PathValue("id")
+		slog.Info("Get students by id", slog.String("Id", id))
+
+		// convert the request id (string into int64)
+		intid, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+			return
+		}
+		// now we have to decode the incoming json , for udpating
+		var student types.Student
+		err = json.NewDecoder(r.Body).Decode(&student)
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+			return
+		}
+
+		// validate the json with struc
+		err = validator.New().Struct(student)
+		if err != nil {
+			// check for validation error and type casting of errs
+			valerrs := err.(validator.ValidationErrors)
+			response.WriteJson(w, http.StatusBadRequest, response.ValidationError(valerrs))
+			return
+		}
+
+		err = storage.UpdateStudentDetails(intid, student.Name, student.Email, student.Age)
+		if err != nil {
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, map[string]string{"message": "students details udpated"})
+
+	}
+}

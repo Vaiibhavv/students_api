@@ -82,3 +82,17 @@ func (s *SQLite) GetStudentById(id int64) (types.Student, error) {
 	return student, nil
 
 }
+
+// update students details sql query
+
+func (s *SQLite) UpdateStudentDetails(id int64, name string, email string, age int) error {
+
+	stmt, err := s.Db.Prepare("update students set name=?,email=?,age=? where id=?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(name, email, age, id)
+	return err
+}
