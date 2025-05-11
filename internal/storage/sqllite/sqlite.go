@@ -96,3 +96,13 @@ func (s *SQLite) UpdateStudentDetails(id int64, name string, email string, age i
 	_, err = stmt.Exec(name, email, age, id)
 	return err
 }
+func (s *SQLite) DeleteStudentById(id int64) error {
+	stmt, err := s.Db.Prepare("delete from students where id=?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(id)
+	return err
+
+}

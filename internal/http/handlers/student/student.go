@@ -122,8 +122,24 @@ func UpdateStudentById(storage storage.Storage) http.HandlerFunc {
 			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
 			return
 		}
-
 		response.WriteJson(w, http.StatusOK, map[string]string{"message": "students details udpated"})
 
 	}
+}
+
+// delete router a student by id
+func DeleteStudentById(storage storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		intid, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+		}
+		err = storage.DeleteStudentById(intid)
+		if err != nil {
+			response.WriteJson(w, http.StatusNotFound, response.GeneralError(err))
+		}
+		response.WriteJson(w, http.StatusAccepted, map[string]string{"message": "student deleted sucessfully"})
+	}
+
 }
